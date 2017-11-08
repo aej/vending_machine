@@ -1,0 +1,48 @@
+from abc import ABC
+
+COIN_TYPE = 0
+NOTE_TYPE = 1
+
+
+class BaseMoney(ABC):
+    """Abstract money class from which all other money classes inherit. Each
+    money type has a value defined in pence."""
+    money_type = None
+    value = None
+
+
+class Coin(BaseMoney):
+    money_type = COIN_TYPE
+
+
+class Note(BaseMoney):
+    money_type = NOTE_TYPE
+
+
+class OneCent(Coin):
+    value = 1
+
+
+class FiveCent(Coin):
+    value = 5
+
+
+class TenCent(Coin):
+    value = 10
+
+
+class TwentyFiveCent(Coin):
+    value = 25
+
+
+class FiftyCent(Coin):
+    value = 50
+
+
+class OneDollarBill(Note):
+    value = 100
+
+
+class TwoDollarBill(Note):
+    value = 200
+
