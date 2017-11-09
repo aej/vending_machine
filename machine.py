@@ -6,11 +6,13 @@ class VendingMachine:
     types of money. The vending machine tracks how many of each type of product
     is inside it as well as the money inside it."""
 
-    def __init__(self, products, money_stock, money_types):
+    def __init__(self, products, money_stock, money_types, money_box):
 
         self.validate_money_stock(money_stock, money_types)
 
         self.products = products
+
+        self.money_box = money_box
         self.money_stock = money_stock
         self.money_types = money_types
 
@@ -86,3 +88,47 @@ class VendingMachine:
         for m in money_stock:
             if type(m) not in money_types:
                 raise InvalidMoneyTypes("Initialized money types invalid.")
+
+
+class MoneyBox:
+    """A money box is a container that holds money. It knows about the money inside it, is able to add or remove money
+    to itself. It only accepts the predefined valid money types."""
+
+    def __init__(self, money_store, valid_money):
+        self.money_store = money_store
+        self.valid_money = valid_money
+
+        self._check_money_is_valid(money_store)
+
+    @property
+    def valid_money_types(self):
+        """Return a set of valid money types"""
+        return {m for m in self.valid_money}
+
+    @property
+    def money_store_types(self):
+        return {m.__class__ for m in self.money_store}
+
+    def _check_money_is_valid(self, money_store):
+        """Check that the money in the money box is valid when the money box is initially created."""
+        if not len(money_store) == 0:
+            for m in money_store:
+                if m.__class__ not in self.valid_money_types:
+                    raise InvalidMoneyTypes("Money type not allowed in money box")
+
+    def add_to_money_store(self, money_type):
+        """Add a money amount to the money stock."""
+        self._check_money_is_valid([money_type])
+        self.money_store.append(money_type)
+
+    def remove_from_money_store(self, money_type):
+        """Take away money amount from the money stock."""
+        if len(self.money_store) == 0 or money_type.__class__ not in self.money_store_types:
+            raise MoneyTypeNotInStock("There are no coins or notes of this amount in the machine")
+
+        for m in self.money_store:
+            if m.__class__ == money_type.__class__:
+                self.money_store.remove(m)
+                return
+
+    # TODO: Check that the money added is also valid

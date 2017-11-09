@@ -5,8 +5,8 @@ NOTE_TYPE = 1
 
 
 class BaseMoney(ABC):
-    """Abstract money class from which all other money classes inherit. Each
-    money type has a value defined in pence."""
+    """Base money is an abstract money object which represents
+    something that can be used as a unit of exchange."""
     money_type = None
     value = None
 
