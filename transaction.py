@@ -1,4 +1,4 @@
-from exceptions import NoStockException
+from exceptions import NoStockException, InsufficientFundsForPurchase, CalculateChangeError
 
 
 class VendingAction:
@@ -11,6 +11,32 @@ class VendingAction:
     def __init__(self, vending_machine):
         self.vending_machine = vending_machine
 
+    def add_money_objects_to_money_stock(self, money_objects):
+        for m in money_objects:
+            self.vending_machine.add_to_money_stock(m)
+
+    def remove_money_objects_to_money_stock(self, money_objects):
+        for m in money_objects:
+            self.vending_machine.remove_from_money_stock(m)
+
+    def calculate_change(self, provided_amount, product_price, money_objects):
+        """Return a lsit of money objects to give as change"""
+        change_amount = provided_amount - product_price
+        try:
+            change_to_give = self.vending_machine.money_box.calculate_change(change_amount)
+            return change_to_give
+        except CalculateChangeError as e:
+            # if there is a calculate change error then return the money
+            self.remove_money_objects_to_money_stock(money_objects)
+            raise e
+
+    def remove_product(self, product, money_objects):
+        try:
+            self.vending_machine.remove_product(product)
+        except NoStockException as e:
+            self.remove_money_objects_to_money_stock(money_objects)
+            raise e
+
     def purchase(self, product, money_objects):
         """Perform necessary actions on the vending machine to purchase a
         product with a certain amount of money"""
@@ -19,28 +45,21 @@ class VendingAction:
         total_money = self._calculate_total_money(money_objects)
         self._check_enough_money(product.price, total_money)
 
-        # remove the product from the vending machine if there is enough stock. Otherwise fail.
-        try:
-            self.vending_machine.remove_product(product)
-        except NoStockException as e:
-            raise e
+        self.add_money_objects_to_money_stock(money_objects)
 
-        # add the money to the vending machine
-        for m in money_objects:
-            self.vending_machine.add_to_money_stock(m)
+        change_to_give = self.calculate_change(total_money, product.price, money_objects)
 
-        change = self._calculate_change(product.price, total_money)
+        self.remove_product(product, money_objects)
 
-        if change > 0:
-            self.vending_machine.decrease_money_stock_by_amount(change)
+        # if all is good then give the change
+        for change in change_to_give:
+            self.vending_machine.remove_from_money_stock(change)
 
-    def refund(self, product):
-        pass
-
-    def _check_enough_money(self, min_amount, total_money):
-        """Check that the amount of money is greated than a minimum amount."""
+    @staticmethod
+    def _check_enough_money(min_amount, total_money):
+        """Check that the amount of money is greater than a minimum amount."""
         if total_money < min_amount:
-            raise Exception("Insufficient funds")
+            raise InsufficientFundsForPurchase("Insufficient funds")
 
     @staticmethod
     def _calculate_total_money(money_objects):
@@ -49,8 +68,3 @@ class VendingAction:
            amount += m.value
 
         return amount
-
-    @staticmethod
-    def _calculate_change(item_value, money):
-        """Work out how much change should be returned in the transaction"""
-        return money - item_value

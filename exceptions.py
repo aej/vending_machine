@@ -8,3 +8,15 @@ class InvalidMoneyTypes(Exception):
 
 class MoneyTypeNotInStock(Exception):
     pass
+
+
+class InvalidMoneyBox(Exception):
+    pass
+
+
+class CalculateChangeError(Exception):
+    pass
+
+
+class InsufficientFundsForPurchase(Exception):
+    pass
